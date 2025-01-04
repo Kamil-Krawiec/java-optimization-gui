@@ -1,11 +1,10 @@
 import java.io.IOException;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
         InstanceReader reader = new InstanceReader();
         try {
-            Instance instance = reader.readInstance("instances/10_3_5_3.def");
+            Instance instance = reader.readInstance("instances/generated.txt");
 
             // System.out.println("Instance Information:");
             // System.out.println("----------------------");
@@ -34,7 +33,7 @@ public class Main {
             //     System.out.println();
             // }
 
-            AntColonyOptimizer aco = new AntColonyOptimizer(instance, 100, 20, 2.0, 1.0, 0.1);
+            AntColonyOptimizer aco = new AntColonyOptimizer(instance, 100, 50, 1.0, 1.0, 0.4);
             RandomSolutionConstructor rsc = new RandomSolutionConstructor(instance);
             Solution aco_solution = aco.run();
             if(!Validator.validateSolution(aco_solution, instance))
@@ -68,6 +67,8 @@ public class Main {
             System.out.println("Random fitness product: " + random_solution.getFitnessProduct());
             System.out.println();
 
+            aco_solution.visualizeAsPng("visualization.png");
+            InstanceGenerator.generateInstance(10, 3, 4, 3, "generated.txt");
         } catch (IOException e) {
             System.err.println("Error reading the instance file: " + e.getMessage());
         }

@@ -80,17 +80,6 @@ public class AntColonyOptimizer {
         return solutions;
     }
 
-    private List<Solution> constructSolutions2() {
-        List<Solution> solutions = new ArrayList<>();
-        for (int i = 0; i < numAnts; i++) {
-            Solution solution = constructSolution2();
-            if (solution != null) {
-                solutions.add(solution);
-            }
-        }
-        return solutions;
-    }
-
     private Solution constructSolution() {
         Solution solution = new Solution();
         List<Task> tasksToSchedule = new ArrayList<>(instance.getTasks());
