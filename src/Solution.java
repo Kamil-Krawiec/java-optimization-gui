@@ -1,4 +1,6 @@
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,7 +80,7 @@ class Solution {
         }
     }
 
-    public void visualizeAsPng(String outputFilePath) {
+    public void visualizeAsPng(String outputFilePath, int random_cost, int random_duration) {
         if (schedule.isEmpty()) {
             System.out.println("No tasks scheduled.");
             return;
@@ -102,8 +104,9 @@ class Solution {
         int cellWidth = 50;
         int cellHeight = 50;
         int padding = 50;
+        int footerHeight = 100; // Extra space for cost and duration
         int imageWidth = padding + (maxTime + 1) * cellWidth;
-        int imageHeight = padding + numResources * cellHeight;
+        int imageHeight = padding + numResources * cellHeight + footerHeight;
 
         // Create a BufferedImage
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
@@ -165,6 +168,13 @@ class Solution {
             g.drawString(label, x, padding - 10);
         }
 
+        // Add cost and duration text
+        int totalCost = (int)Math.round(getScheduleCost());
+        int totalDuration = getScheduleDuration();
+        g.drawString("Total Schedule Cost: " + totalCost, padding, padding + numResources * cellHeight + 30);
+        g.drawString("Total Schedule Duration: " + totalDuration + " hours", padding, padding + numResources * cellHeight + 60);
+        g.drawString("Random Schedule Cost: " + random_cost + ", Random Schedule Duration: " + random_duration, padding, padding + numResources * cellHeight + 90);
+
         // Save the image
         g.dispose();
         try {
@@ -172,6 +182,51 @@ class Solution {
             System.out.println("Schedule visualization saved to: " + outputFilePath);
         } catch (IOException e) {
             System.err.println("Error saving the image: " + e.getMessage());
+        }
+}
+
+
+    public void saveToTxt(String filePath, int random_cost, int random_duration) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            if (schedule.isEmpty()) {
+                writer.write("No tasks scheduled.");
+                return;
+            }
+
+            writer.write("Task Schedule:\n");
+
+            // Sort the time slots (keys) in ascending order
+            List<Integer> sortedTimeSlots = schedule.keySet().stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+            // Iterate through the sorted time slots
+            for (int time : sortedTimeSlots) {
+                List<TaskAssignment> assignments = schedule.get(time);
+
+                writer.write("Time: " + time + " hours\n");
+
+                // Write each task assignment at this time
+                for (TaskAssignment taskAssignment : assignments) {
+                    Task task = taskAssignment.getTask();
+                    Resource resource = taskAssignment.getResource();
+                    writer.write("  Task ID: " + task.getId() + " assigned to Resource ID: " 
+                        + resource.getId() + " (Salary: " + resource.getSalary() + ")\n");
+                }
+                writer.write("\n");  // For better readability
+            }
+
+            // Write the total cost and duration
+            int totalCost = (int)Math.round(getScheduleCost());
+            int totalDuration = getScheduleDuration();
+            writer.write("Total Schedule Cost: " + totalCost + "\n");
+            writer.write("Total Schedule Duration: " + totalDuration + " hours\n");
+            writer.write("Random Schedule Cost: " + random_cost + "\n");
+            writer.write("Random Schedule Duration: " + random_duration + " hours\n");
+
+            System.out.println("Schedule saved to: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Error saving schedule to file: " + e.getMessage());
         }
     }
 }
