@@ -1,4 +1,4 @@
-package gui;
+
 import javax.swing.*;
 
 public class MainApp extends JFrame {
@@ -13,15 +13,14 @@ public class MainApp extends JFrame {
 
         JTabbedPane analysisTabbedPane = new JTabbedPane();
 
-        AntColonyPanel antColonyPanel = new AntColonyPanel();
+        VisualisationPanel visualisationPanel = new VisualisationPanel();
+        AntColonyPanel antColonyPanel = new AntColonyPanel(visualisationPanel, analysisTabbedPane);
+        GeneratePanel generatePanel = new GeneratePanel();
+
         analysisTabbedPane.addTab("Ant Colony", antColonyPanel);
-
-        MultiobjectivePanel multiObjectivePanel = new MultiobjectivePanel();
-        analysisTabbedPane.addTab("NSGA-II", multiObjectivePanel);
-
+        analysisTabbedPane.addTab("Visualisation", visualisationPanel);
         mainTabbedPane.addTab("Analysis", analysisTabbedPane);
 
-        GeneratePanel generatePanel = new GeneratePanel();
         mainTabbedPane.addTab("Generate", generatePanel);
 
         add(mainTabbedPane);

@@ -1,4 +1,4 @@
-package gui;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 public class AntColonyPanel extends JPanel {
 
@@ -15,9 +16,10 @@ public class AntColonyPanel extends JPanel {
     private JTextField betaField;
     private JTextField evaporationField;
     private JTextField iterationsField;
+    private JComboBox<String> focusDropdown;
     private JButton runButton;
 
-    public AntColonyPanel() {
+    public AntColonyPanel(VisualisationPanel visualisationPanel, JTabbedPane analysisPane) {
         setLayout(new GridBagLayout());
         JPanel centeredPanel = new JPanel();
         centeredPanel.setLayout(new BoxLayout(centeredPanel, BoxLayout.Y_AXIS));
@@ -26,7 +28,7 @@ public class AntColonyPanel extends JPanel {
         JLabel instanceLabel = new JLabel("Instance:");
         filePathField = createTextField(20);
         filePathField.setEditable(false);
-        JButton browseButton = new JButton("Wybierz plik");
+        JButton browseButton = new JButton("Choose file");
         browseButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -71,7 +73,11 @@ public class AntColonyPanel extends JPanel {
         runButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                runAlgorithm();
+                try {
+                    runAlgorithm(visualisationPanel, analysisPane);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
 
@@ -100,6 +106,10 @@ public class AntColonyPanel extends JPanel {
         betaField.getDocument().addDocumentListener(documentListener);
         evaporationField.getDocument().addDocumentListener(documentListener);
         iterationsField.getDocument().addDocumentListener(documentListener);
+        
+        parametersPanel.add(new JLabel("Focus on:"));
+        focusDropdown = new JComboBox<>(new String[]{"Duration", "Cost"});
+        parametersPanel.add(focusDropdown);
 
         add(centeredPanel);
     }
@@ -115,7 +125,7 @@ public class AntColonyPanel extends JPanel {
         fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
             @Override
             public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".rtf");
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".def");
             }
 
             @Override
@@ -133,20 +143,47 @@ public class AntColonyPanel extends JPanel {
         validateInputs();
     }
 
-    private void runAlgorithm() {
+    private void runAlgorithm(VisualisationPanel visualisationPanel, JTabbedPane analysisPane) throws IOException {
         String filePath = filePathField.getText();
-        String numberOfAnts = antsField.getText();
-        String alpha = alphaField.getText();
-        String beta = betaField.getText();
-        String evaporationRate = evaporationField.getText();
-        String numberOfIterations = iterationsField.getText();
+        int numberOfAnts = Integer.parseInt(antsField.getText());
+        int numberOfIterations = Integer.parseInt(iterationsField.getText());
+        double alpha = Double.valueOf(alphaField.getText());
+        double beta = Double.valueOf(betaField.getText());
+        double evaporationRate = Double.valueOf(evaporationField.getText());
+        String focusOption = (String) focusDropdown.getSelectedItem();
 
-        System.out.println("File Path: " + filePath);
-        System.out.println("Number of Ants: " + numberOfAnts);
-        System.out.println("Alpha: " + alpha);
-        System.out.println("Beta: " + beta);
-        System.out.println("Evaporation Rate: " + evaporationRate);
-        System.out.println("Number of Iterations: " + numberOfIterations);
+        System.out.println("Parameters read.");
+        InstanceReader reader = new InstanceReader();
+        Instance instance = reader.readInstance(filePath);
+        System.out.println("Instance read.");
+        RandomSolutionConstructor random = new RandomSolutionConstructor(instance);
+        Solution random_solution = random.constructRandomSolution();
+        System.out.println("Random solution constructed.");
+        AntColonyOptimizer antColonyOptimizer = new AntColonyOptimizer(instance, numberOfAnts, numberOfIterations, alpha, beta, evaporationRate);
+        Solution solution = new Solution();
+        if(focusOption == "Duration"){
+            solution = antColonyOptimizer.run();
+        }
+        else if(focusOption == "Cost"){
+            solution = antColonyOptimizer.run2();
+        }
+        if(Validator.validateSolution(solution, instance))
+        {
+            System.out.println("Created solution, which is valid!");
+        }
+        else {
+            System.out.println("Error: Created solution is not valid!");
+            return;
+        }
+        int random_cost = (int)Math.round(random_solution.getScheduleCost());
+        int random_duration = random_solution.getScheduleDuration();
+        solution.visualizeAsPng(filePath.replace(".def", "_visulaisation.png"), random_cost, random_duration);
+        System.out.println("Visualisation created.");
+        solution.saveToTxt(filePath.replace(".def", "_solution.txt"), random_cost, random_duration);
+        System.out.println("Txt solution file created.");
+        File visualisation_file = new File(filePath.replace(".def", "_visulaisation.png"));
+        visualisationPanel.displayImage(visualisation_file);
+        analysisPane.setSelectedComponent(visualisationPanel);
     }
 
     private void validateInputs() {

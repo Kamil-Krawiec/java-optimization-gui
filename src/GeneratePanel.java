@@ -1,4 +1,4 @@
-package gui;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -124,18 +124,15 @@ public class GeneratePanel extends JPanel {
 
     private void generateFiles() {
         String directoryPath = directoryField.getText();
-        String filename = filenameField.getText();
-        String numberOfTasks = numberOfTasksField.getText();
-        String numberOfResources = numberOfResourcesField.getText();
-        String precedenceRelations = precedenceRelationsField.getText();
-        String numberOfSkills = numberOfSkillsField.getText();
+        String filepath = directoryPath + "/" + filenameField.getText() + ".def";
+        int numberOfTasks = Integer.parseInt(numberOfTasksField.getText());
+        int numberOfResources = Integer.parseInt(numberOfResourcesField.getText());
+        int precedenceRelations = Integer.parseInt(precedenceRelationsField.getText());
+        int numberOfSkills = Integer.parseInt(numberOfSkillsField.getText());
 
-        System.out.println("Directory Path: " + directoryPath);
-        System.out.println("Filename: " + filename);
-        System.out.println("Number of Tasks: " + numberOfTasks);
-        System.out.println("Number of Resources: " + numberOfResources);
-        System.out.println("Precedence Relations: " + precedenceRelations);
-        System.out.println("Number of Skills: " + numberOfSkills);
+        InstanceGenerator.generateInstance(numberOfTasks, numberOfResources, precedenceRelations, numberOfSkills, filepath);
+        System.out.println("Instance generated and saved as" + filepath);
+
     }
 
     private void validateInputs() {
