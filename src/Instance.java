@@ -49,4 +49,14 @@ public class Instance {
     public void addTask(Task task) {
         tasks.add(task);
     }
+
+    // Add the getTaskById method
+    public Task getTaskById(int taskId) {
+        for (Task task : tasks) {
+            if (task.getId() == taskId) {
+                return task;
+            }
+        }
+        return null;  // Return null if no task with the given ID is found
+    }
 }
